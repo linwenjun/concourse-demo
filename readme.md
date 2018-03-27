@@ -6,5 +6,7 @@ concourse
 changeme
 
 ./fly -t lite set-pipeline -p busybox -c busybox.yml
+
+fly -t jenkins set-pipeline --pipeline my-pipeline --config pipeline.yml --load-vars-from credentials.yml
 ```
 
