@@ -20,7 +20,7 @@ resources:
 - name: docker-image
   type: docker-image
   source:
-    username: {{docker-hub-username}}
-    password: {{docker-hub-password}}
-    insecure_registries: {{docker-hub-insecure-registry}}
-    repository: {{docker-create-concourse-go-image}}
+    username: admin
+    password: Harbor12345
+    insecure_registries: ["10.0.67.135"]
+    repository: "10.0.67.135/library/nginx"
