@@ -27,7 +27,7 @@ resources:
     password: Harbor12345
     insecure_registries: ["10.0.67.135"]
     repository: "10.0.67.135/library/nginx"
-    tag: ((image_tag))
+    tag: [version/number]
 
 - name: version
   type: semver
