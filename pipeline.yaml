@@ -6,6 +6,8 @@ jobs:
   plan:
   - get: git-concourse-build-docker-image
     trigger: true
+  - put: version
+    params: {bump: minor}
   - put: docker-image
     params:
       build: git-concourse-build-docker-image
@@ -25,3 +27,13 @@ resources:
     password: Harbor12345
     insecure_registries: ["10.0.67.135"]
     repository: "10.0.67.135/library/nginx"
+    tag: ((image_tag))
+
+- name: version
+  type: semver
+  source:
+    driver: git
+    uri: git@github.com:tws-system/concourse-semver.git
+    branch: version
+    file: version
+    private_key: ((concourse-repo-private-key))
