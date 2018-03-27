@@ -1,4 +1,11 @@
 ---
+resource_types:
+- name: kubernetes
+  type: docker-image
+  source:
+    repository: zlabjp/kubernetes-resource
+    tag: "1.9"
+
 jobs:
 - name: build-docker-image
   public: true
@@ -7,10 +14,15 @@ jobs:
   - get: git-concourse-build-docker-image
     trigger: true
   - put: version
-    params: {bump: minor}
+    params: {bump: patch}
   - put: docker-image
     params:
+      tag_as_latest: true
+      tag: version/number
       build: git-concourse-build-docker-image
+  - put: kubernetes-staging
+    params:
+      kubectl: get node
 
 resources:
 - name: git-concourse-build-docker-image
@@ -26,8 +38,7 @@ resources:
     username: admin
     password: Harbor12345
     insecure_registries: ["10.0.67.135"]
-    repository: "10.0.67.135/library/nginx"
-    tag: [version/number]
+    repository: "10.0.67.135/library/nginx-apline"
 
 - name: version
   type: semver
@@ -37,3 +48,9 @@ resources:
     branch: version
     file: version
     private_key: ((concourse-repo-private-key))
+
+- name: kubernetes-staging
+  type: kubernetes
+  source:
+    server: https://10.0.128.28:6443
+    token: ((kubernetes-token))
