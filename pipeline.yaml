@@ -11,33 +11,51 @@ jobs:
   public: true
   serial: true
   plan:
-  - get: git-concourse-build-docker-image
+  - get: git-stackless-program-web
     trigger: true
+  - task: npm-build
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: node
+          tag: 8.11.0-alpine
+          registry_mirror: "http://38a3cf61.m.daocloud.io"
+      inputs:
+        - name: git-stackless-program-web
+      run:
+        path: git-stackless-program-web/infrastructure/build.sh
+      # outputs:
+      #   - name: stackless-program-deploy-web-app
   - put: version
     params: {bump: patch}
   - put: docker-image
     params:
       tag_as_latest: true
       tag: version/number
-      build: git-concourse-build-docker-image
+      build: stackless-program-deploy-web-app
   - put: kubernetes-staging
     params:
       kubectl: get node
+      wait_until_ready: 0
 
 resources:
-- name: git-concourse-build-docker-image
+- name: git-stackless-program-web
   type: git
   source:
-    uri: https://github.com/linwenjun/concourse-demo.git
+    uri: git@gitee.com:tws-system/stackless-programm-web.git
     branch: master
+    private_key: ((concourse-repo-private-key))
   check_every: 1m
 
 - name: docker-image
   type: docker-image
   source:
-    username: admin
-    password: Harbor12345
+    username: ((harbor_username))
+    password: ((harbor_password))
     insecure_registries: ["10.0.67.135"]
+    registry_mirror: "http://38a3cf61.m.daocloud.io"
     repository: "10.0.67.135/library/nginx-apline"
 
 - name: version
