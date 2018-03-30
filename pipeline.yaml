@@ -5,6 +5,7 @@ resource_types:
   source:
     repository: zlabjp/kubernetes-resource
     tag: "1.9"
+    registry_mirror: "http://38a3cf61.m.daocloud.io"
 
 jobs:
 - name: build-docker-image
@@ -13,6 +14,8 @@ jobs:
   plan:
   - get: git-stackless-program-web
     trigger: true
+  - put: version
+    params: {bump: patch}
   - task: npm-build
     config:
       platform: linux
@@ -24,20 +27,19 @@ jobs:
           registry_mirror: "http://38a3cf61.m.daocloud.io"
       inputs:
         - name: git-stackless-program-web
+        - name: version
       run:
         path: git-stackless-program-web/infrastructure/build.sh
-      # outputs:
-      #   - name: stackless-program-deploy-web-app
-  - put: version
-    params: {bump: patch}
+      outputs:
+        - name: git-stackless-program-web-deploy
   - put: docker-image
     params:
       tag_as_latest: true
       tag: version/number
-      build: stackless-program-deploy-web-app
+      build: git-stackless-program-web-deploy
   - put: kubernetes-staging
     params:
-      kubectl: get node
+      kubectl: replace --force -f git-stackless-program-web-deploy/infrastructure/deployment.yml --record
       wait_until_ready: 0
 
 resources:
@@ -56,7 +58,7 @@ resources:
     password: ((harbor_password))
     insecure_registries: ["10.0.67.135"]
     registry_mirror: "http://38a3cf61.m.daocloud.io"
-    repository: "10.0.67.135/library/nginx-apline"
+    repository: "10.0.67.135/tws/stackless-programm-web"
 
 - name: version
   type: semver
@@ -66,6 +68,7 @@ resources:
     branch: version
     file: version
     private_key: ((concourse-repo-private-key))
+    depth: 2
 
 - name: kubernetes-staging
   type: kubernetes
